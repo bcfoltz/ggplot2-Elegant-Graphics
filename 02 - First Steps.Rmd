@@ -1,0 +1,209 @@
+---
+title: 'ggplot2: Chapter 2'
+author: "Brandon Foltz"
+date: "2023-03-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(mgcv)
+library(MASS)
+```
+
+```{r}
+ggplot(mpg,
+       aes(x = displ, y = hwy)) +
+  geom_point()
+```
+
+```{r}
+ggplot(mpg, aes(cty, hwy)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+```{r}
+ggplot(mpg,
+       aes(model, manufacturer)) +
+  geom_point()
+```
+```{r}
+ggplot(economics,
+       aes(date, unemploy)) +
+  geom_line()
+```
+```{r}
+ggplot(mpg,
+       aes(cty)) +
+  geom_histogram()
+```
+```{r}
+ggplot(mpg,
+       aes(displ, hwy, color = class)) +
+  geom_point()
+```
+```{r}
+# Common error
+ggplot(mpg,
+       aes(displ, hwy)) +
+  geom_point(aes(color = "blue"))
+
+# Correct
+ggplot(mpg,
+       aes(displ, hwy)) +
+  geom_point(color = "blue")
+```
+
+Faceting
+
+```{r}
+ggplot(mpg,
+       aes(displ, hwy)) +
+  geom_point() +
+  facet_wrap(~class)
+```
+
+Plot Geoms
+
+```{r}
+ggplot(mpg,
+       aes(displ, hwy)) +
+  geom_point() +
+  geom_smooth()
+```
+```{r}
+ggplot(mpg,
+       aes(displ, hwy)) +
+  geom_point() +
+  geom_smooth(span = 0.2)
+```
+```{r}
+ggplot(mpg,
+       aes(displ, hwy)) +
+  geom_point() +
+  geom_smooth(method = "gam", formula = y ~ s(x))
+```
+```{r}
+ggplot(mpg,
+       aes(displ, hwy)) +
+  geom_point() +
+  geom_smooth(method = "rlm")
+```
+```{r}
+ggplot(mpg, aes(drv, hwy)) + geom_jitter()
+ggplot(mpg, aes(drv, hwy)) + geom_boxplot()
+ggplot(mpg, aes(drv, hwy)) + geom_violin()
+```
+
+Histograms and Frequency Polygons
+
+```{r}
+ggplot(mpg,
+       aes(hwy)) +
+  geom_histogram()
+
+ggplot(mpg,
+       aes(hwy)) +
+  geom_freqpoly()
+
+ggplot(mpg,
+       aes(hwy)) +
+  geom_histogram(color = "orange", fill = "orange", alpha = 0.3) +
+  geom_freqpoly(color = "blue", linewidth = 1)
+```
+```{r}
+ggplot(mpg,
+       aes(displ, color = drv)) +
+  geom_freqpoly(binwidth = 0.5)
+
+ggplot(mpg,
+       aes(displ, fill = drv)) +
+  geom_histogram(binwidth = 0.5) +
+  facet_wrap(~drv, ncol = 1)
+```
+
+Bar Charts
+```{r}
+ggplot(mpg,
+       aes(manufacturer)) +
+  geom_bar() +
+  coord_flip()
+```
+```{r}
+drugs <- data.frame(
+  drug = c("a", "b", "c"),
+  effect = c(4.2, 9.7, 6.1)
+)
+
+ggplot(drugs,
+       aes(drug, effect)) + geom_bar(stat = "identity")
+
+ggplot(drugs,
+       aes(drug, effect)) + geom_point()
+```
+
+Line Plots
+
+```{r}
+ggplot(economics,
+       aes(date, unemploy / pop)) + geom_line()
+
+ggplot(economics,
+       aes(date, uempmed)) + geom_line()
+
+ggplot(economics,
+       aes(x = unemploy / pop, y = uempmed)) +
+  geom_point()
+
+year <- function(x) as.POSIXlt(x)$year + 1900
+
+ggplot(economics,
+       aes(unemploy / pop, uempmed)) +
+  geom_path(color = "grey50") +
+  geom_point(aes(color = year(date)))
+```
+
+Axes
+
+```{r}
+ggplot(mpg, aes(cty, hwy)) +
+  geom_point(alpha = 1 / 3)
+
+ggplot(mpg, aes(cty, hwy)) +
+  geom_point(alpha = 1 / 3) + 
+  xlab("city driving (mpg)") + 
+  ylab("highway driving (mpg)")
+
+# Remove the axis labels with NULL
+ggplot(mpg, aes(cty, hwy)) +
+  geom_point(alpha = 1 / 3) + 
+  xlab(NULL) + 
+  ylab(NULL)
+```
+```{r}
+ggplot(mpg, aes(drv, hwy)) +
+  geom_jitter(width = 0.25)
+
+ggplot(mpg, aes(drv, hwy)) +
+  geom_jitter(width = 0.25) + 
+  xlim("f", "r") + 
+  ylim(20, 30)
+#> Warning: Removed 140 rows containing missing values (geom_point).
+  
+# For continuous scales, use NA to set only one limit
+ggplot(mpg, aes(drv, hwy)) +
+  geom_jitter(width = 0.25, na.rm = TRUE) + 
+  ylim(NA, 30)
+```
+Output
+
+```{r}
+p <- ggplot(mpg, aes(displ, hwy, colour = factor(cyl))) +
+  geom_point()
+
+ggsave("plot.png", p, width = 5, height = 5)
+
+summary(p)
+```
+
