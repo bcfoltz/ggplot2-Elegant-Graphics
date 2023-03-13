@@ -1,0 +1,85 @@
+---
+title: "ggplot2 Elegant Graphics"
+author: "Brandon Foltz"
+date: "2023-03-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(patchwork)
+```
+```{r}
+p1 <- ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy))
+
+p2 <- ggplot(mpg) + 
+  geom_bar(aes(x = as.character(year), fill = drv), position = "dodge") + 
+  labs(x = "year")
+
+p3 <- ggplot(mpg) + 
+  geom_density(aes(x = hwy, fill = drv), colour = NA) + 
+  facet_grid(rows = vars(drv))
+
+p4 <- ggplot(mpg) + 
+  stat_summary(aes(x = drv, y = hwy, fill = drv), geom = "col", fun.data = mean_se) +
+  stat_summary(aes(x = drv, y = hwy), geom = "errorbar", fun.data = mean_se, width = 0.5)
+```
+
+```{r}
+p1 + p2
+
+p1 + p2 + p3 + p4
+
+p1 + p2 + p3 + plot_layout(ncol = 2)
+
+p1 / p2
+
+p1 | p2
+
+p3 | (p2 / (p1 | p4))
+
+layout <- "
+AAB
+C#B
+CDD
+"
+
+p1 + p2 + p3 + p4 + plot_layout(design = layout)
+```
+
+```{r}
+p1 + p2 + p3 + plot_layout(ncol = 2, guides = "collect")
+
+p1 + p2 + p3 + guide_area() + plot_layout(ncol = 2, guides = "collect")
+```
+
+```{r}
+p12 <- p1 + p2
+p12[[2]] <- p12[[2]] + theme_light()
+p12
+```
+
+```{r}
+p1 + p4 & theme_minimal()
+```
+
+```{r}
+p1 + p4 & scale_y_continuous(limits = c(0, 45))
+```
+
+```{r}
+p34 <- p3 + p4 + plot_annotation(
+  title = "A closer look at the effect of drive train in cars",
+  caption = "Source: mpg dataset in ggplot2"
+) +
+  plot_layout(guides = "collect")
+p34
+```
+
+```{r}
+p123 <- p1 | (p2 / p3)
+p123 + plot_annotation(tag_levels = "I") # Uppercase roman numerics
+```
+

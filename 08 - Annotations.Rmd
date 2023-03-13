@@ -1,0 +1,170 @@
+---
+title: 'ggplot Elegant Graphics: Chapter 8'
+author: "Brandon Foltz"
+date: "2023-03-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r}
+ggplot(mpg,
+       aes(displ, hwy)) +
+  geom_point(aes(color = factor(cyl))) +
+  labs(
+    x = "Engine displacement (liters)",
+    y = "Highway miles per gallon",
+    color = "Number of cylinders",
+    title = "Mileage by engine size and cylinders",
+    subtitle = "Source: https://fueleconomy.gov"
+  )
+```
+
+```{r}
+values <- seq(from = -2, to = 2, by = 0.01)
+df <- data.frame(x = values, y = values^3)
+ggplot(df, aes(x, y)) +
+  geom_path() +
+  labs(y = quote(f(x) == x^3))
+```
+
+```{r}
+df <- data.frame(x = 1:3, y = 1:3)
+base <- ggplot(df, aes(x, y)) +
+  geom_point() +
+  labs(x = "Axis title with *italics* and **boldface**")
+
+base
+base + theme(axis.title.x = ggtext::element_markdown())
+```
+
+```{r}
+df <- data.frame(x =1, y = 3:1, family = c("sans", "serif", "mono"))
+ggplot(df, aes(x ,y)) +
+  geom_text(aes(label = family, family = family))
+```
+
+```{r}
+df <- data.frame(x = 1, y = 3:1, face = c("plain", "bold", "italic"))
+ggplot(df, aes(x, y)) +
+  geom_text(aes(label = face, fontface = face))
+```
+
+```{r}
+df <- data.frame(
+  x = c(1,1,2,2,1.5),
+  y = c(1,2,1,2,1.5),
+  text = c(
+    "bottom-left", "top-left",
+    "bottom-right", "top-right", "center"
+  )
+)
+
+ggplot(df, aes(x, y)) +
+  geom_text(aes(label = text))
+ggplot(df, aes(x,y)) +
+  geom_text(aes(label = text), vjust = "inward", hjust = "inward")
+```
+
+```{r}
+df <- data.frame(
+  treatment = c("a", "b", "c"),
+  response = c(1.2, 3.4, 2.5)
+)
+
+ggplot(df, aes(treatment, response)) +
+  geom_point() +
+  geom_text(
+    mapping = aes(label = paste0("(", response, ")")),
+    nudge_x = -0.3
+  ) +
+  ylim(1.1, 3.6)
+```
+
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_text(aes(label = model)) +
+  xlim(1, 8)
+ggplot(mpg, aes(displ, hwy)) +
+  geom_text(aes(label = model), check_overlap = TRUE) +
+  xlim(1, 8)
+```
+
+```{r}
+label <- data.frame(
+  waiting = c(55, 80),
+  eruptions = c(2, 4.3),
+  label = c("peak one", "peak two")
+)
+
+ggplot(faithfuld, aes(waiting, eruptions)) +
+  geom_tile(aes(fill = density)) +
+  geom_label(data = label, aes(label = label))
+```
+
+```{r}
+ggplot(economics, aes(date, unemploy)) +
+  geom_line()
+
+presidential <- subset(presidential, start > economics$date[1])
+
+ggplot(economics) + 
+  geom_rect(
+    aes(xmin = start, xmax = end, fill = party), 
+    ymin = -Inf, ymax = Inf, alpha = 0.2, 
+    data = presidential
+  ) + 
+  geom_vline(
+    aes(xintercept = as.numeric(start)), 
+    data = presidential,
+    colour = "grey50", alpha = 0.5
+  ) + 
+  geom_text(
+    aes(x = start, y = 2500, label = name), 
+    data = presidential, 
+    size = 3, vjust = 0, hjust = 0, nudge_x = 50
+  ) + 
+  geom_line(aes(date, unemploy)) + 
+  scale_fill_manual(values = c("blue", "red")) +
+  xlab("date") + 
+  ylab("unemployment")
+```
+
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() + 
+  ggforce::geom_mark_ellipse(aes(label = cyl, group = cyl))
+```
+
+```{r}
+data(Oxboys, package = "nlme")
+ggplot(Oxboys, aes(age, height, group = Subject)) + 
+  geom_line() + 
+  geom_point() + 
+  gghighlight::gghighlight(Subject %in% 1:3)
+```
+
+```{r}
+ggplot(diamonds, aes(log10(carat), log10(price))) +
+  geom_bin2d() +
+  facet_wrap(vars(cut), nrow = 1)
+
+mod_coef <- coef(lm(log10(price) ~ log10(carat), data = diamonds))
+
+ggplot(diamonds, aes(x = log10(carat), log10(price))) +
+  geom_bin2d() +
+  geom_abline(intercept = mod_coef[1], slope = mod_coef[2],
+              color = "white", size = 1) +
+  facet_wrap(vars(cut), nrow = 1)
+```
+
+```{r}
+ggplot(mpg, aes(displ, hwy, color = factor(cyl))) +
+  geom_point() +
+  gghighlight::gghighlight() +
+  facet_wrap(vars(cyl))
+```
+

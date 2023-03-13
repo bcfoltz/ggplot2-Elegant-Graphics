@@ -1,0 +1,156 @@
+---
+title: 'ggplot2 Elegant Graphics: Chapter 7'
+author: "Brandon Foltz"
+date: "2023-03-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidygraph)
+library(ggraph)
+```
+
+```{r}
+graph <- play_erdos_renyi(n = 10, p = 0.2)|>
+  activate(nodes)|>
+  mutate(class = sample(letters[1:4], n(), replace = TRUE))|>
+  activate(edges)|>
+  arrange(.N()$class[from])
+
+graph
+```
+
+Conversion
+
+```{r}
+data(highschool, package = "ggraph")
+head(highschool)
+
+hs_graph <- as_tbl_graph(highschool, directed = FALSE)
+hs_graph
+```
+
+```{r}
+data(luv_colours, package = "ggraph")
+luv_clust <- hclust(dist(luv_colours[, 1:3]))
+luv_graph <- as_tbl_graph(luv_clust)
+luv_graph
+```
+
+Algorithms
+
+```{r}
+graph|>
+  activate(nodes)|>
+  mutate(centrality = centrality_pagerank())|>
+  arrange(desc(centrality))
+```
+
+```{r}
+ggraph(hs_graph) +
+  geom_edge_link() +
+  geom_node_point()
+
+ggraph(hs_graph, layout = "drl") +
+  geom_edge_link() +
+  geom_node_point()
+```
+
+```{r}
+hs_graph <- hs_graph|>
+  activate(edges)|>
+  mutate(edge_weights = runif(n()))
+ggraph(hs_graph, layout = "stress", weights = edge_weights) +
+  geom_edge_link(aes(alpha = edge_weights)) +
+  geom_node_point() +
+  scale_edge_alpha_identity()
+```
+
+```{r}
+ggraph(luv_graph, layout = "dendrogram", circular = TRUE) +
+  geom_edge_link() +
+  coord_fixed()
+```
+
+Drawing Nodes
+
+```{r}
+ggraph(hs_graph, layout = "stress") +
+  geom_edge_link() +
+  geom_node_point(
+    aes(filter = centrality_degree() > 2,
+        colour = centrality_power()),
+    size = 4
+  )
+```
+
+```{r}
+ggraph(luv_graph, layout = "treemap") +
+  geom_node_tile(aes(fill = depth))
+```
+
+Drawing Edges
+
+```{r}
+ggraph(graph, layout = "stress") +
+  geom_edge_link(aes(alpha = after_stat(index)))
+```
+
+```{r}
+ggraph(graph, layout = "stress") +
+  geom_edge_link2(
+    aes(colour = node.class),
+    width = 3,
+    lineend = "round"
+  )
+```
+
+```{r}
+ggraph(hs_graph, layout = "stress") +
+  geom_edge_fan()
+```
+
+```{r}
+ggraph(luv_graph, layout = "dendrogram", height = height) +
+  geom_edge_elbow()
+```
+
+Edge node clipping
+
+```{r}
+ggraph(graph, layout = "stress") +
+  geom_edge_link(arrow = arrow()) +
+  geom_node_point(aes(color = class), size = 8)
+```
+
+```{r}
+ggraph(graph, layout = "stress") +
+  geom_edge_link(
+    arrow = arrow(),
+    start_cap = circle(5, "mm"),
+    end_cap = circle(5, "mm")
+  ) +
+  geom_node_point(aes(color = class), size = 8)
+```
+
+```{r}
+ggraph(hs_graph, layout = "matrix",
+       sort.by = node_rank_traveller()) +
+  geom_edge_point()
+```
+
+```{r}
+ggraph(hs_graph, layout = "stress") +
+  geom_edge_link() +
+  geom_node_point() +
+  facet_edges(~year)
+```
+
+```{r}
+ggraph(hs_graph, layout = "stress") +
+  geom_edge_link() +
+  geom_node_point() +
+  facet_nodes(~group_spinglass())
+```
+
