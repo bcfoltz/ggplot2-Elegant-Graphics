@@ -1,0 +1,397 @@
+---
+title: 'ggplot2 Elegant Graphics: Chapter 10'
+author: "Brandon Foltz"
+date: "2023-03-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+```{r}
+ggplot(mpg, aes(x = displ)) +
+  geom_histogram()
+
+# The same as...
+
+ggplot(mpg, aes(x = displ, y = after_stat(count))) +
+  geom_histogram()
+```
+
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  geom_smooth() +
+  facet_wrap(vars(year))
+```
+```{r}
+#different scales issue
+mpg_99 <- mpg |>
+  filter(year == 1999)
+mpg_08 <- mpg|>
+  filter(year == 2008)
+
+base_99 <- ggplot(mpg_99, aes(displ, hwy)) + geom_point()
+base_08 <- ggplot(mpg_08, aes(displ, hwy)) + geom_point()
+
+base_99
+base_08
+```
+```{r}
+base_99 +
+  scale_x_continuous(limits = c(1,7)) +
+  scale_y_continuous(limits = c(10, 45))
+
+base_08 +
+  scale_x_continuous(limits = c(1,7)) +
+  scale_y_continuous(limits = c(10, 45))
+```
+
+```{r}
+base_99 + lims(x = c(1, 7), y = c(10, 45))
+base_08 + lims(x = c(1, 7), y = c(10, 45))
+```
+
+```{r}
+base <- ggplot(mpg, aes(drv, hwy)) +
+  geom_hline(yintercept = 28, color = "red") +
+  geom_boxplot()
+
+base
+base + coord_cartesian(ylim = c(10, 35))
+base + ylim(10, 35)
+```
+
+```{r}
+base <- ggplot(faithfuld, aes(waiting, eruptions)) +
+  geom_raster(aes(fill = density)) +
+  theme(legend.position = "none") +
+  labs(X = NULL, y = NULL)
+
+base
+base + 
+  scale_x_continuous(expand = expansion(0)) +
+  scale_y_continuous(expand = expansion(0))
+```
+
+```{r}
+base +
+  scale_x_continuous(expand = expansion(add = 3)) +
+  scale_y_continuous(expand = expansion(add = 3))
+
+# Multiplicative expansion 20%
+
+base +
+  scale_x_continuous(expand = expansion(mult = 0.2)) +
+  scale_y_continuous(expand = expansion(mult = 0.2))
+
+# Multiplicative expansion of 5% at the lower end of each axes,
+# and 20% at the upper end; for the y-axis the expansion is 
+# set directly instead of using expansion()
+
+base +
+  scale_x_continuous(expand = expansion(mul = c(0.05, 0.2))) +
+  scale_y_continuous(expand = c(0.05, 0, 0.2, 0))
+```
+
+Breaks
+
+```{r}
+toy <- data.frame(
+  const = 1,
+  up = 1:4,
+  txt = letters[1:4],
+  big = (1:4)*1000,
+  log = c(2, 5, 10, 2000)
+)
+
+toy
+
+base <- ggplot(toy, aes(big, const)) +
+  geom_point() +
+  labs(x = NULL, y = NULL) +
+  scale_y_continuous(breaks = NULL)
+
+base
+```
+```{r}
+base + scale_x_continuous(breaks = c(1000, 2000, 4000))
+base + scale_x_continuous(breaks = c(1000, 1500, 2000, 4000))
+```
+You can write your own break function, but in many cases there is no need, thanks to the scales package.32 It provides several tools that are useful for this purpose:
+
+scales::breaks_extended() creates automatic breaks for numeric axes.
+scales::breaks_log() creates breaks appropriate for log axes.
+scales::breaks_pretty() creates “pretty” breaks for date/times.
+scales::breaks_width() creates equally spaced breaks.
+
+```{r}
+base
+base + scale_x_continuous(breaks = scales::breaks_extended())
+base + scale_x_continuous(breaks = scales::breaks_extended(n = 2))
+```
+
+```{r}
+base +
+  scale_x_continuous(breaks = scales::breaks_width(800))
+base +
+  scale_x_continuous(breaks = scales::breaks_width(800, offset = 200))
+base +
+  scale_x_continuous(breaks = scales::breaks_width(800, offset = -200))
+```
+
+Minor breaks
+
+```{r}
+mb <- unique(as.numeric(1:10 %o% 10 ^ (0:3)))
+mb
+
+base <- ggplot(toy, aes(log, const)) +
+  geom_point() +
+  labs(x = NULL, y = NULL) +
+  scale_y_continuous(breaks = NULL)
+
+base + scale_x_log10()
+base + scale_x_log10(minor_breaks = mb)
+```
+
+Labels
+
+```{r}
+base <- ggplot(toy, aes(big, const)) +
+  geom_point() +
+  labs(x = NULL, y = NULL) +
+  scale_y_continuous(breaks = NULL)
+
+base
+base +
+  scale_x_continuous(
+    breaks = c(2000, 4000),
+    labels = c("2k", "4k")
+  )
+```
+Again, the scales package provides a number of tools that will automatically construct label functions for you. Some of the more useful examples for numeric data include:
+
+scales::label_bytes() formats numbers as kilobytes, megabytes etc.
+scales::label_comma() formats numbers as decimals with commas added.
+scales::label_dollar() formats numbers as currency.
+scales::label_ordinal() formats numbers in rank order: 1st, 2nd, 3rd etc.
+scales::label_percent() formats numbers as percentages.
+scales::label_pvalue() formats numbers as p-values: <.05, <.01, .34, etc.
+
+```{r}
+base <- ggplot(toy, aes(big, const)) +
+  geom_point() +
+  labs(x = NULL, y = NULL) +
+  scale_x_continuous(breaks = NULL)
+
+base
+base + scale_y_continuous(labels = scales::label_percent())
+base + scale_y_continuous(
+  labels = scales::label_dollar(prefix = "$", suffix = "")
+)
+```
+Transformations
+
+```{r}
+base <- ggplot(mpg, aes(displ, hwy)) + geom_point()
+
+base
+base + scale_x_reverse()
+base + scale_y_reverse()
+```
+
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  scale_y_continuous(trans = "reciprocal")
+
+ggplot(diamonds, aes(price, carat)) +
+  geom_bin_2d() +
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10")
+```
+
+```{r}
+#equivalent
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  scale_y_continuous(trans = "reciprocal")
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  scale_y_continuous(trans = scales::reciprocal_trans())
+```
+```{r}
+#equivalent
+
+ggplot(diamonds, aes(price, carat)) + 
+  geom_bin2d() + 
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10")
+
+ggplot(diamonds, aes(price, carat)) + 
+  geom_bin2d() + 
+  scale_x_log10() +
+  scale_y_log10()
+```
+
+```{r}
+# the axis is different for each
+ggplot(mpg, aes(log10(displ), hwy)) +
+  geom_point()
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  scale_x_log10()
+```
+Date-time Position Scales
+
+```{r}
+date_base <- ggplot(economics, aes(date, psavert)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = NULL, y = NULL)
+
+date_base
+date_base + scale_x_date(date_breaks = "15 years")
+```
+
+```{r}
+the_year <- as.Date(c("2021-01-01", "2021-12-31"))
+set_breaks <- scales::breaks_width("1 month")
+set_breaks(the_year)
+```
+
+```{r}
+set_breaks <- scales::breaks_width("1 month", offset = 8)
+set_breaks(the_year)
+```
+
+```{r}
+df <- data.frame(
+  y = as.Date(c("2022-01-01", "2022-04-01")))
+base <- ggplot(df, aes(y = y)) +
+  labs(y = NULL) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_line(color = "black"),
+    panel.grid.minor = element_line(color = "grey50")
+  )
+
+base + scale_y_date(date_breaks = "1 month")
+base + scale_y_date(date_breaks = "1 month", date_minor_breaks = "1 week")
+```
+
+String	Meaning
+%S	second (00-59)
+%M	minute (00-59)
+%l	hour, in 12-hour clock (1-12)
+%I	hour, in 12-hour clock (01-12)
+%p	am/pm
+%H	hour, in 24-hour clock (00-23)
+%a	day of week, abbreviated (Mon-Sun)
+%A	day of week, full (Monday-Sunday)
+%e	day of month (1-31)
+%d	day of month (01-31)
+%m	month, numeric (01-12)
+%b	month, abbreviated (Jan-Dec)
+%B	month, full (January-December)
+%y	year, without century (00-99)
+%Y	year, with century (0000-9999)
+
+```{r}
+base <- ggplot(economics, aes(date, psavert)) +
+  geom_line(na.rm = TRUE) +
+  labs(x = NULL, y = NULL)
+
+base + scale_x_date(date_breaks = "5 years")
+base + scale_x_date(date_breaks = "5 years", date_labels = "%y")
+```
+```{r}
+# line breaks
+lim <- as.Date(c("2004-01-01", "2005-01-01"))
+
+base + scale_x_date(limits = lim, date_labels = "%b %y")
+base + scale_x_date(limits = lim, date_labels = "%B\n%Y")
+```
+
+```{r}
+base +
+  scale_x_date(
+    limits = lim,
+    labels = scales::label_date_short()
+  )
+```
+Discrete Position Scales
+
+```{r}
+ggplot(mpg, aes(x = hwy, y = class)) +
+  geom_point()
+
+ggplot(mpg, aes(x = hwy, y = class)) +
+  geom_point() +
+  scale_x_continuous() +
+  scale_y_discrete()
+```
+```{r}
+ggplot(mpg, aes(x = hwy, y = class)) +
+  geom_point() +
+  annotate("text", x = 5, y = 1:7, label = 1:7)
+
+ggplot(mpg, aes(x = hwy, y = class)) +
+  geom_jitter(width = 0, height = 0.25) +
+  annotate("text", x = 5, y = 1:7, label = 1:7)
+```
+
+```{r}
+ggplot(mpg, aes(x = drv, y = hwy)) + geom_boxplot()
+ggplot(mpg, aes(x = drv, y = hwy)) + geom_boxplot(width = 0.4)
+```
+
+```{r}
+base <- ggplot(toy, aes(const, txt)) +
+  geom_label(aes(label = txt)) +
+  scale_x_continuous(breaks = NULL) +
+  labs(x = NULL, y = NULL)
+
+base
+base + scale_y_discrete(limits = c("a", "b", "c", "d", "e"))
+base + scale_y_discrete(limits = c("d", "c", "a", "b"))
+```
+```{r}
+base + scale_y_discrete(breaks = c("b", "c"))
+base + scale_y_discrete(labels = c(c = "carrot", b = "banana")) 
+```
+Label Positions
+
+```{r}
+base <- ggplot(mpg, aes(manufacturer, hwy)) +
+  geom_boxplot()
+base
+
+base + guides(x = guide_axis(angle = 45))
+```
+
+Binned Position Scales
+
+```{r}
+ggplot(mpg, aes(hwy)) +
+  geom_histogram(bins = 8)
+ggplot(mpg, aes(hwy)) +
+  geom_bar() +
+  scale_x_binned()
+```
+
+```{r}
+base <- ggplot(mpg, aes(displ, hwy)) +
+  geom_count()
+
+base
+
+base +
+  scale_x_binned(n.breaks = 15) +
+  scale_y_binned(n.breaks = 15)
+```
+
