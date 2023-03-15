@@ -1,0 +1,30 @@
+---
+title: "ggplot2 Elegant Graphics"
+author: "Brandon Foltz"
+date: "2023-03-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+```{r}
+ggplot(mpg, aes(displ, hwy, color = factor(cyl))) +
+  geom_point()
+```
+Per group regression line on top of a scatterplot
+
+```{r}
+ggplot(mpg, aes(displ, hwy, color = factor(cyl))) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  geom_smooth() +
+  facet_wrap(~year)
+```
+
