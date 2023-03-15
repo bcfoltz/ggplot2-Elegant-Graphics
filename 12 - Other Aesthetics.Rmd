@@ -1,0 +1,90 @@
+---
+title: "ggplot2 Elegant Graphics"
+author: "Brandon Foltz"
+date: "2023-03-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+base <- ggplot(mpg, aes(displ, hwy, size = cyl)) + 
+  geom_point()
+
+base
+base + scale_size(range = c(1, 2))
+```
+
+```{r}
+# base <- ggplot(planets, aes(1, name, size = radius)) + 
+#   geom_point() + 
+#   scale_x_continuous(breaks = NULL) + 
+#   labs(x = NULL, y = NULL, size = NULL)
+#   
+# base + ggtitle("not to scale")
+# base + 
+#   scale_radius(limits = c(0, NA), range = c(0, 10)) + 
+#   ggtitle("to scale")
+```
+
+Binned scale sizes
+```{r}
+base <- ggplot(mpg, aes(displ, manufacturer, size = hwy)) +
+  geom_point(alpha = .2) +
+  scale_size_binned()
+
+base
+```
+
+```{r}
+base + guides(size = guide_bins(axis = FALSE))
+
+base + guides(size = guide_bins(direction = "horizontal"))
+```
+
+```{r}
+base + guides(
+  size = guide_bins(
+    axis.colour = "red",
+    axis.arrow = arrow(
+      length = unit(.1, "inches"), 
+      ends = "first", 
+      type = "closed"
+    )
+  )
+)
+```
+
+Line Type
+
+```{r}
+ggplot(economics_long, aes(date, value01, linetype = variable)) +
+  geom_line()
+```
+
+Manual Scales
+
+```{r}
+huron <- data.frame(year = 1875:1972, level = as.numeric(LakeHuron))
+ggplot(huron, aes(year)) +
+  geom_line(aes(y = level + 5), colour = "red") +
+  geom_line(aes(y = level - 5), colour = "blue")
+```
+
+```{r}
+ggplot(huron, aes(year)) +
+  geom_line(aes(y = level + 5, colour = "above")) +
+  geom_line(aes(y = level - 5, colour = "below"))
+```
+
+```{r}
+ggplot(huron, aes(year)) +
+  geom_line(aes(y = level + 5, colour = "above")) +
+  geom_line(aes(y = level - 5, colour = "below")) +
+  scale_colour_manual("Direction",
+    values = c("above" = "red", "below" = "blue")
+  )
+```
+
